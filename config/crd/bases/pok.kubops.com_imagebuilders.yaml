@@ -44,6 +44,16 @@ spec:
                       is the path within the registry (default: library) - repository
                       is the name of the image'
                     type: string
+                  secretRef:
+                    description: SecretRef is a reference to a secret containing the
+                      credentials needed to scan and push the images
+                    properties:
+                      name:
+                        description: Name of the referent.
+                        type: string
+                    required:
+                    - name
+                    type: object
                 required:
                 - image
                 type: object
@@ -131,6 +141,16 @@ spec:
               source:
                 description: Source of the repository
                 properties:
+                  secretRef:
+                    description: SecretRef is a reference to a secret containing the
+                      credentials needed to access the repository
+                    properties:
+                      name:
+                        description: Name of the referent.
+                        type: string
+                    required:
+                    - name
+                    type: object
                   url:
                     description: URL of the Git repository in http, https.
                     pattern: ^(http|https)://.*$

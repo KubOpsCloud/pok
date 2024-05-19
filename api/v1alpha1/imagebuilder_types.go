@@ -20,13 +20,21 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+type LocalObjectReference struct {
+	// Name of the referent.
+	// +required
+	Name string `json:"name"`
+}
+
 // ImageBuilderSpecSource defines the repository source
 type ImageBuilderSpecSource struct {
 	// URL of the Git repository in http, https.
 	// +kubebuilder:validation:Pattern="^(http|https)://.*$"
 	// +required
 	URL string `json:"url"`
-	// TODO: Add support for private repositories
+	// SecretRef is a reference to a secret containing the credentials needed to access the repository
+	// +optional
+	SecretRef *LocalObjectReference `json:"secretRef,omitempty"`
 }
 
 // ImageBuilderSpecSource defines the desired state of ImageBuilder
@@ -38,7 +46,9 @@ type ImageBuilderSpecDestination struct {
 	//   - repository is the name of the image
 	// +required
 	Image string `json:"image"`
-	// TODO: Add support for private registries
+	// SecretRef is a reference to a secret containing the credentials needed to scan and push the images
+	// +optional
+	SecretRef *LocalObjectReference `json:"secretRef,omitempty"`
 }
 
 // ImageBuilderSpecSource defines the desired state of ImageBuilder
