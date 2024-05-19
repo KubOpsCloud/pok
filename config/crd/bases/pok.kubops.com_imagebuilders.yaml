@@ -34,10 +34,114 @@ spec:
           spec:
             description: ImageBuilderSpec defines the desired state of ImageBuilder
             properties:
-              foo:
-                description: Foo is an example field of ImageBuilder. Edit imagebuilder_types.go
-                  to remove/update
-                type: string
+              destination:
+                description: Destination of the built image
+                properties:
+                  image:
+                    description: 'Image name must be in the form [hostname[:port]/][namespace/]repository
+                      - hostname is registry hostname (default: index.docker.io) -
+                      port is the port of the registry (default: 443) - namespace
+                      is the path within the registry (default: library) - repository
+                      is the name of the image'
+                    type: string
+                required:
+                - image
+                type: object
+              rules:
+                default:
+                - build:
+                    context: .
+                    file: Dockerfile
+                    platforms:
+                    - linux/amd64
+                  source:
+                    pattern: main
+                    type: branch
+                  tags:
+                  - latest
+                description: 'Build rules TODO: kubebuilder:default:={} does not work'
+                items:
+                  description: ImageBuilderSpecRule defines the desired state of ImageBuilder
+                  properties:
+                    build:
+                      default:
+                        context: .
+                        file: Dockerfile
+                        platforms:
+                        - linux/amd64
+                      description: 'Build configuration of the rule TODO: kubebuilder:default:={}
+                        does not work'
+                      properties:
+                        context:
+                          default: .
+                          description: Context to use for building the image default
+                            is .
+                          type: string
+                        file:
+                          default: Dockerfile
+                          description: Dockerfile to use for building the image default
+                            is Dockerfile
+                          type: string
+                        platforms:
+                          default:
+                          - linux/amd64
+                          description: Platforms to use for building the image default
+                            is linux/amd64
+                          items:
+                            type: string
+                          minItems: 1
+                          type: array
+                        target:
+                          description: Target to use for building the image
+                          type: string
+                      required:
+                      - context
+                      - file
+                      - platforms
+                      type: object
+                    source:
+                      description: Source of the rule
+                      properties:
+                        pattern:
+                          default: main
+                          description: Pattern to match the source (e.g. main, v1.0)
+                          type: string
+                        type:
+                          default: branch
+                          description: Type of the source (e.g. branch, tag)
+                          enum:
+                          - branch
+                          - tag
+                          type: string
+                      type: object
+                    tags:
+                      default:
+                      - latest
+                      description: Tags to apply to the image
+                      items:
+                        type: string
+                      minItems: 1
+                      type: array
+                  required:
+                  - build
+                  - source
+                  - tags
+                  type: object
+                type: array
+              source:
+                description: Source of the repository
+                properties:
+                  url:
+                    description: URL of the Git repository in http, https.
+                    pattern: ^(http|https)://.*$
+                    type: string
+                required:
+                - url
+                type: object
+            required:
+            - destination
+            - rules
+            - source
             type: object
           status:
             description: ImageBuilderStatus defines the observed state of ImageBuilder

@@ -20,16 +20,90 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
+// ImageBuilderSpecSource defines the repository source
+type ImageBuilderSpecSource struct {
+	// URL of the Git repository in http, https.
+	// +kubebuilder:validation:Pattern="^(http|https)://.*$"
+	// +required
+	URL string `json:"url"`
+	// TODO: Add support for private repositories
+}
+
+// ImageBuilderSpecSource defines the desired state of ImageBuilder
+type ImageBuilderSpecDestination struct {
+	// Image name must be in the form [hostname[:port]/][namespace/]repository
+	//   - hostname is registry hostname (default: index.docker.io)
+	//   - port is the port of the registry (default: 443)
+	//   - namespace is the path within the registry (default: library)
+	//   - repository is the name of the image
+	// +required
+	Image string `json:"image"`
+	// TODO: Add support for private registries
+}
+
+// ImageBuilderSpecSource defines the desired state of ImageBuilder
+type ImageBuilderSpecRuleSource struct {
+	// Type of the source (e.g. branch, tag)
+	// +kubebuilder:validation:Enum=branch;tag
+	// +kubebuilder:default:="branch"
+	// +required
+	Type string `json:"type,omitempty"`
+	// Pattern to match the source (e.g. main, v1.0)
+	// +kubebuilder:default:="main"
+	// +optional
+	Pattern string `json:"pattern,omitempty"`
+}
+
+// ImageBuilderSpecRuleBuild defines the desired state of ImageBuilder
+type ImageBuilderSpecRuleBuild struct {
+	// Dockerfile to use for building the image default is Dockerfile
+	// +kubebuilder:default:="Dockerfile"
+	// +required
+	File string `json:"file"`
+	// Context to use for building the image default is .
+	// +kubebuilder:default:="."
+	// +required
+	Context string `json:"context"`
+	// Platforms to use for building the image default is linux/amd64
+	// +kubebuilder:validation:MinItems:=1
+	// +kubebuilder:default:={"linux/amd64"}
+	// +required
+	Platforms []string `json:"platforms"`
+	// Target to use for building the image
+	// +optional
+	Target string `json:"target,omitempty"`
+}
+
+// ImageBuilderSpecRule defines the desired state of ImageBuilder
+type ImageBuilderSpecRule struct {
+	// Source of the rule
+	// +required
+	Source ImageBuilderSpecRuleSource `json:"source"`
+	// Build configuration of the rule
+	// TODO: kubebuilder:default:={} does not work
+	// +kubebuilder:default:={file: "Dockerfile", context: ".", platforms: {"linux/amd64"}}
+	// +required
+	Build ImageBuilderSpecRuleBuild `json:"build"`
+	// Tags to apply to the image
+	// +kubebuilder:validation:MinItems:=1
+	// +kubebuilder:default:={latest}
+	// +required
+	Tags []string `json:"tags"`
+}
 
 // ImageBuilderSpec defines the desired state of ImageBuilder
 type ImageBuilderSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
-	// Foo is an example field of ImageBuilder. Edit imagebuilder_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	// Source of the repository
+	// +required
+	Source ImageBuilderSpecSource `json:"source"`
+	// Destination of the built image
+	// +required
+	Destination ImageBuilderSpecDestination `json:"destination"`
+	// Build rules
+	// TODO: kubebuilder:default:={} does not work
+	// +kubebuilder:default:={{source:{type: "branch", pattern: "main"}, build: {file: "Dockerfile", context: ".", platforms: {"linux/amd64"} }, tags: {"latest"}}}
+	// +required
+	Rules []ImageBuilderSpecRule `json:"rules"`
 }
 
 // ImageBuilderStatus defines the observed state of ImageBuilder
