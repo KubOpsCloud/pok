@@ -1,12 +1,20 @@
 apiVersion: pok.kubops.com/v1alpha1
 kind: ImageBuilder
 metadata:
-  labels:
-    app.kubernetes.io/name: imagebuilder
-    app.kubernetes.io/instance: imagebuilder-sample
-    app.kubernetes.io/part-of: pok
-    app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/created-by: pok
   name: imagebuilder-sample
 spec:
-  # TODO(user): Add fields here
+  source:
+    url: https://github.com/KubOpsCloud/pok.git
+  destination:
+    image: ghcr.io/KubOpsCloud/pok
+  rules:
+    - source:
+        type: branch
+        pattern: main
+      build:
+        context: .
+        file: Dockerfile
+        platforms:
+          - linux/amd64
+      tags:
+        - latest
