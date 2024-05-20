@@ -17,6 +17,7 @@ limitations under the License.
 package database
 
 import (
+	"bytes"
 	"os"
 	"testing"
 
@@ -57,7 +58,7 @@ func TestLowerGet(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if string(v) != string(value) {
+	if !bytes.Equal(v, value) {
 		t.Fatalf("expected %s, got %s", string(value), string(v))
 	}
 }
@@ -86,7 +87,7 @@ func TestGet(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if string(v) != string(value) {
+	if !bytes.Equal(v, value) {
 		t.Fatalf("expected %s, got %s", string(value), string(v))
 	}
 }
@@ -99,7 +100,7 @@ func TestGetKeyNotFound(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if string(v) != string(value) {
+	if !bytes.Equal(v, value) {
 		t.Fatalf("expected %s, got %s", string(value), string(v))
 	}
 }
@@ -116,7 +117,7 @@ func TestSet(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if string(v) != string(value) {
+	if !bytes.Equal(v, value) {
 		t.Fatalf("expected %s, got %s", string(value), string(v))
 	}
 }
