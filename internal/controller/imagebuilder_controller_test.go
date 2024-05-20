@@ -51,6 +51,14 @@ var _ = Describe("ImageBuilder Controller", func() {
 						Name:      resourceName,
 						Namespace: "default",
 					},
+					Spec: pokv1alpha1.ImageBuilderSpec{
+						Source: pokv1alpha1.ImageBuilderSpecSource{
+							URL: "https://github.com/KubOpsCloud/pok.git",
+						},
+						Destination: pokv1alpha1.ImageBuilderSpecDestination{
+							Image: "ghcr.io/KubOpsCloud/pok",
+						},
+					},
 					// TODO(user): Specify other spec details if needed.
 				}
 				Expect(k8sClient.Create(ctx, resource)).To(Succeed())
