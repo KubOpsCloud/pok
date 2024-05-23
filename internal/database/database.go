@@ -16,7 +16,16 @@ limitations under the License.
 
 package database
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"errors"
+)
+
+const (
+	tagsSuffix     = "/tags"
+	branchesSuffix = "/branches"
+	branchSuffix   = "/branch/"
+)
 
 type IDatabase interface {
 	Get(key []byte) ([]byte, error)
@@ -40,26 +49,77 @@ func (kv *Database) SetTags(repo string, tags []string) error {
 	if err != nil {
 		return err
 	}
-	return kv.db.Set([]byte(repo), v)
+	return kv.db.Set([]byte(repo+tagsSuffix), v)
 }
 
 func (kv *Database) Tags(repo string) ([]string, error) {
 	var tags []string
-	v, err := kv.db.Get([]byte(repo))
+	v, err := kv.db.Get([]byte(repo + tagsSuffix))
 	if err != nil {
 		return nil, err
 	}
 	err = json.Unmarshal(v, &tags)
-	if err != nil {
+	if err != nil && len(v) > 0 {
 		return nil, err
 	}
 	return tags, nil
 }
 
-func (kv *Database) DeleteRepoTags(repo string) error {
-	return kv.db.Delete([]byte(repo))
+func (kv *Database) DeleteTags(repo string) error {
+	return kv.db.Delete([]byte(repo + tagsSuffix))
+}
+
+func (kv *Database) SetBranches(repo string, branches []string) error {
+	v, err := json.Marshal(branches)
+	if err != nil {
+		return err
+	}
+	return kv.db.Set([]byte(repo+branchesSuffix), v)
+}
+
+func (kv *Database) Branches(repo string) ([]string, error) {
+	var branches []string
+	v, err := kv.db.Get([]byte(repo + branchesSuffix))
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(v, &branches)
+	if err != nil && len(v) > 0 {
+		return nil, err
+	}
+	return branches, nil
+}
+
+func (kv *Database) DeleteBranches(repo string) error {
+	return kv.db.Delete([]byte(repo + branchesSuffix))
+}
+
+func (kv *Database) SetLastCommitOfBranch(repo, branch, commit string) error {
+	return kv.db.Set([]byte(repo+branchSuffix+branch), []byte(commit))
+}
+
+func (kv *Database) LastCommitOfBranch(repo, branch string) (string, error) {
+	v, err := kv.db.Get([]byte(repo + branchSuffix + branch))
+	if err != nil {
+		return "", err
+	}
+	return string(v), nil
+}
+
+func (kv *Database) DeleteLastCommitOfBranch(repo, branch string) error {
+	return kv.db.Delete([]byte(repo + branchSuffix + branch))
 }
 
 func (kv *Database) DeleteRepo(repo string) error {
-	return kv.DeleteRepoTags(repo)
+	var err error
+	branches, err := kv.Branches(repo)
+	if err != nil {
+		return err
+	}
+	for _, branch := range branches {
+		err = errors.Join(err, kv.DeleteLastCommitOfBranch(repo, branch))
+	}
+	errBranches := kv.DeleteBranches(repo)
+	errTags := kv.DeleteTags(repo)
+	return errors.Join(err, errTags, errBranches)
 }
